@@ -89,6 +89,12 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         previewLayer.frame = view.layer.bounds
         view.layer.addSublayer(previewLayer)
 
+        // 줌 설정
+        setZoomFactor(zoomFactor: 1.2)
+
+        // 오토포커스 설정
+        setAutoFocus()
+        
         // 6. 세션 시작
         captureSession.startRunning()
     }
@@ -142,8 +148,8 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         let cropRectInScreen = cropView.frame
 
         // 이미지와 스크린 사이의 스케일 비율 계산
-        let scaleX = fixedImage.size.width / view.bounds.width
-        let scaleY = fixedImage.size.height / view.bounds.height
+        let scaleX = image.size.width / view.bounds.width
+        let scaleY = image.size.height / view.bounds.height
 
         // 스크린 좌표를 이미지 좌표로 변환
         let cropRectInImage = CGRect(

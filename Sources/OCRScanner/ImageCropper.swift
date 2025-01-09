@@ -57,7 +57,7 @@ public class ImageCropper {
         request.usesLanguageCorrection = true
         
         // 텍스트 인식에 필요한 언어 설정 (영어, 한글 모두 지원)
-        request.recognitionLanguages = ["en", "ko"] // 영어(en), 한글(ko) 모두 지원
+        request.recognitionLanguages = ["en"] // 영어(en), 지원
         
         // Vision Request Handler 실행
         let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])

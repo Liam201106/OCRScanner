@@ -75,8 +75,9 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         // 오토포커스 설정
         setAutoFocus()
         
-        // 6. 세션 시작
-        captureSession.startRunning()
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.captureSession.startRunning()
+        }
     }
 
     // 줌 설정 함수

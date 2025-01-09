@@ -222,7 +222,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
 
         // 최소/최대 크기 제한 설정
         let minSize: CGFloat = 100
-        let maxSize: CGFloat = view.frame.size.width * 0.9
+        let maxSize: CGFloat = 100
 
         // 크기 조정: 좌우 및 상하 모두 변경
         if newWidth > minSize && newWidth < maxSize {

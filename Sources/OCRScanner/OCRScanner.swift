@@ -4,13 +4,13 @@
 import UIKit
 import AVFoundation
 
-public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCaptureDelegate {
+public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
 
     private var captureSession: AVCaptureSession!
     private var photoOutput: AVCapturePhotoOutput!
     private var previewLayer: AVCaptureVideoPreviewLayer!
     var captureDevice: AVCaptureDevice?
-    
+
     private var cropView: UIView!
 
     public var onTextRecognized: (([String]) -> Void)?
@@ -128,8 +128,11 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
         cropView.addGestureRecognizer(panGesture)
         cropView.isUserInteractionEnabled = true
+        
+        // 크롭 영역 크기 조정 제스처 추가
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
+        cropView.addGestureRecognizer(pinchGesture)
     }
-
 
     @objc private func didTapCaptureButton() {
         // 사진 촬영
@@ -210,5 +213,28 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         
         cropView.center = CGPoint(x: newX, y: newY)
         gesture.setTranslation(.zero, in: self.view)
+    }
+
+    @objc private func handlePinchGesture(_ gesture: UIPinchGestureRecognizer) {
+        let scale = gesture.scale
+        let newWidth = cropView.frame.size.width * scale
+        let newHeight = cropView.frame.size.height * scale
+
+        // 최소/최대 크기 제한 설정
+        let minSize: CGFloat = 100
+        let maxSize: CGFloat = view.frame.size.width * 0.9
+
+        if newWidth > minSize && newWidth < maxSize {
+            cropView.frame.size.width = newWidth
+        }
+
+        if newHeight > minSize && newHeight < maxSize {
+            cropView.frame.size.height = newHeight
+        }
+
+        // 크기 변경 후, 크롭뷰의 위치도 다시 계산
+        cropView.center = CGPoint(x: cropView.center.x, y: cropView.center.y)
+
+        gesture.scale = 1 // 스케일 초기화
     }
 }

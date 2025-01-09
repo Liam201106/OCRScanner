@@ -130,11 +130,27 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
             return
         }
         print("이미지가 성공적으로 캡처되었습니다.")
-        print("Resized Image size: \(image.size)")
-        
-        // 크롭된 영역을 기준으로 이미지 자르기
-        let cropRect = cropView.frame
-        if let croppedImage = ImageCropper.cropImage(image: image, cropRect: cropRect) {
+        print("Original Image size: \(image.size)") // 원본 해상도 출력
+
+        // 스크린 좌표계에서 크롭뷰의 frame 가져오기
+        let cropRectInScreen = cropView.frame
+
+        // 이미지와 스크린 사이의 스케일 비율 계산
+        let scaleX = image.size.width / view.bounds.width
+        let scaleY = image.size.height / view.bounds.height
+
+        // 스크린 좌표를 이미지 좌표로 변환
+        let cropRectInImage = CGRect(
+            x: cropRectInScreen.origin.x * scaleX,
+            y: cropRectInScreen.origin.y * scaleY,
+            width: cropRectInScreen.width * scaleX,
+            height: cropRectInScreen.height * scaleY
+        )
+
+        print("Crop Rect in Image: \(cropRectInImage)")
+
+        // 이미지 크롭
+        if let croppedImage = ImageCropper.cropImage(image: image, cropRect: cropRectInImage) {
             // OCR 수행
             ImageCropper.performOCR(on: croppedImage) { [weak self] result in
                 DispatchQueue.main.async {
@@ -150,6 +166,7 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
             }
         }
     }
+
 
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: self.view)

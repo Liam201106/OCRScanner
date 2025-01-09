@@ -35,6 +35,34 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         setupUI()
     }
 
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        updateCameraOrientation()
+    }
+
+    private func updateCameraOrientation() {
+        guard let connection = previewLayer.connection else { return }
+
+        // 디바이스 방향에 따라 AVCaptureConnection 방향 설정
+        if connection.isVideoOrientationSupported {
+            switch UIDevice.current.orientation {
+            case .portrait:
+                connection.videoOrientation = .portrait
+            case .landscapeRight:
+                connection.videoOrientation = .landscapeLeft // 카메라 뷰 기준 반대 방향
+            case .landscapeLeft:
+                connection.videoOrientation = .landscapeRight
+            case .portraitUpsideDown:
+                connection.videoOrientation = .portraitUpsideDown
+            default:
+                connection.videoOrientation = .portrait
+            }
+        }
+
+        // 레이어 프레임 업데이트
+        previewLayer.frame = view.bounds
+    }
+    
     private func setupCamera() {
         // 1. Capture Session 설정
         captureSession = AVCaptureSession()

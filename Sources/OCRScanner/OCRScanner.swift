@@ -132,6 +132,12 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         print("이미지가 성공적으로 캡처되었습니다.")
         print("Original Image size: \(image.size)") // 원본 해상도 출력
 
+        // 이미지의 회전 각도 확인
+        guard fixImageOrientation(image) != nil else {
+            print("이미지 회전 처리 실패")
+            return
+        }
+        
         // 스크린 좌표계에서 크롭뷰의 frame 가져오기
         let cropRectInScreen = cropView.frame
 
@@ -167,7 +173,18 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         }
     }
 
+    // 이미지 회전 처리 함수
+    func fixImageOrientation(_ image: UIImage) -> UIImage? {
+        if image.imageOrientation == .up { return image }
 
+        UIGraphicsBeginImageContext(image.size)
+        image.draw(in: CGRect(origin: .zero, size: image.size))
+        let fixedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return fixedImage
+    }
+    
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: self.view)
         var newX = cropView.center.x + translation.x

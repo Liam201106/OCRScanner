@@ -2,52 +2,91 @@
 // https://docs.swift.org/swift-book
 
 import UIKit
+import AVFoundation
 
-public class OCRScanner : UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+public class CameraCaptureViewController: UIViewController, @preconcurrency AVCapturePhotoCaptureDelegate {
+
+    private var captureSession: AVCaptureSession!
+    private var photoOutput: AVCapturePhotoOutput!
+    private var previewLayer: AVCaptureVideoPreviewLayer!
 
     private var originalImage: UIImage?
     private var cropView: UIView!
-    private var imageView: UIImageView!
 
     public var onTextRecognized: (([String]) -> Void)?
 
     private let captureButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("촬영", for: .normal)
-        button.addTarget(OCRScanner.self, action: #selector(didTapCaptureButton), for: .touchUpInside)
+        button.addTarget(CameraCaptureViewController.self, action: #selector(didTapCaptureButton), for: .touchUpInside)
         return button
     }()
 
     private let cropButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("크롭 및 OCR", for: .normal)
-        button.addTarget(OCRScanner.self, action: #selector(didTapCropButton), for: .touchUpInside)
+        button.addTarget(CameraCaptureViewController.self, action: #selector(didTapCropButton), for: .touchUpInside)
         return button
     }()
-    
+
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+        setupCamera()
         setupUI()
     }
 
+    private func setupCamera() {
+        // 1. Capture Session 설정
+        captureSession = AVCaptureSession()
+        captureSession.sessionPreset = .photo
+
+        // 2. 기본 카메라 장치 가져오기
+        guard let backCamera = AVCaptureDevice.default(for: .video),
+              let input = try? AVCaptureDeviceInput(device: backCamera) else {
+            print("카메라를 사용할 수 없습니다.")
+            return
+        }
+
+        // 3. 세션에 입력 추가
+        if captureSession.canAddInput(input) {
+            captureSession.addInput(input)
+        }
+
+        // 4. 출력 설정
+        photoOutput = AVCapturePhotoOutput()
+        if captureSession.canAddOutput(photoOutput) {
+            captureSession.addOutput(photoOutput)
+        }
+
+        // 5. 카메라 프리뷰 설정
+        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.frame = view.layer.bounds
+        view.layer.addSublayer(previewLayer)
+
+        // 6. 세션 시작
+        captureSession.startRunning()
+    }
+
     private func setupUI() {
+        // 촬영 버튼 추가
         captureButton.frame = CGRect(x: (view.frame.width - 200) / 2, y: view.frame.height - 100, width: 200, height: 50)
         self.view.addSubview(captureButton)
 
+        // 크롭 버튼 추가
         cropButton.frame = CGRect(x: (view.frame.width - 200) / 2, y: view.frame.height - 150, width: 200, height: 50)
         self.view.addSubview(cropButton)
 
-        // 이미지 뷰 및 크롭 영역 설정
-        imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height - 200))
-        imageView.contentMode = .scaleAspectFit
-        self.view.addSubview(imageView)
+        // 크롭 영역 설정: 가로는 화면 크기의 절반, 세로는 화면 크기의 80%
+        let cropWidth = view.frame.width / 2
+        let cropHeight = view.frame.height * 0.8
+        let cropX = (view.frame.width - cropWidth) / 2
+        let cropY = (view.frame.height - cropHeight) / 2
 
-        // 크롭 영역 설정
         cropView = UIView()
         cropView.layer.borderColor = UIColor.red.cgColor
         cropView.layer.borderWidth = 2
-        cropView.frame = CGRect(x: 50, y: 100, width: 200, height: 200)
+        cropView.frame = CGRect(x: cropX, y: cropY, width: cropWidth, height: cropHeight)
         self.view.addSubview(cropView)
 
         // 크롭 영역 이동 제스처 추가
@@ -56,14 +95,11 @@ public class OCRScanner : UIViewController, UIImagePickerControllerDelegate, UIN
         cropView.isUserInteractionEnabled = true
     }
 
+
     @objc private func didTapCaptureButton() {
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            let imagePicker = UIImagePickerController()
-            imagePicker.sourceType = .camera
-            imagePicker.delegate = self
-            imagePicker.allowsEditing = false
-            present(imagePicker, animated: true, completion: nil)
-        }
+        // 사진 촬영
+        let settings = AVCapturePhotoSettings()
+        photoOutput.capturePhoto(with: settings, delegate: self)
     }
 
     @objc private func didTapCropButton() {
@@ -88,16 +124,15 @@ public class OCRScanner : UIViewController, UIImagePickerControllerDelegate, UIN
         }
     }
 
-    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        guard let image = info[.originalImage] as? UIImage else { return }
-        
-        originalImage = image
-        imageView.image = image
-        dismiss(animated: true, completion: nil)
-    }
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        guard let data = photo.fileDataRepresentation(),
+              let image = UIImage(data: data) else {
+            print("이미지 캡처 실패")
+            return
+        }
 
-    public func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        dismiss(animated: true, completion: nil)
+        originalImage = image
+        print("이미지가 성공적으로 캡처되었습니다.")
     }
 
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
@@ -113,4 +148,3 @@ public class OCRScanner : UIViewController, UIImagePickerControllerDelegate, UIN
         gesture.setTranslation(.zero, in: self.view)
     }
 }
-

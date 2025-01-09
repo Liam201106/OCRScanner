@@ -133,7 +133,7 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         print("Original Image size: \(image.size)") // 원본 해상도 출력
 
         // 이미지의 회전 각도 확인
-        guard fixImageOrientation(image) != nil else {
+        guard let fixedImage = fixImageOrientation(image) else {
             print("이미지 회전 처리 실패")
             return
         }
@@ -142,8 +142,8 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         let cropRectInScreen = cropView.frame
 
         // 이미지와 스크린 사이의 스케일 비율 계산
-        let scaleX = image.size.width / view.bounds.width
-        let scaleY = image.size.height / view.bounds.height
+        let scaleX = fixedImage.size.width / view.bounds.width
+        let scaleY = fixedImage.size.height / view.bounds.height
 
         // 스크린 좌표를 이미지 좌표로 변환
         let cropRectInImage = CGRect(
@@ -156,7 +156,7 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         print("Crop Rect in Image: \(cropRectInImage)")
 
         // 이미지 크롭
-        if let croppedImage = ImageCropper.cropImage(image: image, cropRect: cropRectInImage) {
+        if let croppedImage = ImageCropper.cropImage(image: fixedImage, cropRect: cropRectInImage) {
             // OCR 수행
             ImageCropper.performOCR(on: croppedImage) { [weak self] result in
                 DispatchQueue.main.async {

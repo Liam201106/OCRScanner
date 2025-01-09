@@ -224,6 +224,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         let minSize: CGFloat = 100
         let maxSize: CGFloat = view.frame.size.width * 0.9
 
+        // 크기 조정: 좌우 및 상하 모두 변경
         if newWidth > minSize && newWidth < maxSize {
             cropView.frame.size.width = newWidth
         }
@@ -237,4 +238,5 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
 
         gesture.scale = 1 // 스케일 초기화
     }
+
 }

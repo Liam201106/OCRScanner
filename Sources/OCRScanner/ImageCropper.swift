@@ -30,14 +30,26 @@ public class ImageCropper {
         // Vision Request 생성
         let request = VNRecognizeTextRequest { (request, error) in
             if let error = error {
-                completion(.failure(error))
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
                 return
             }
             
             // 결과를 문자열 배열로 추출
-            let observations = request.results as? [VNRecognizedTextObservation]
-            let recognizedStrings = observations?.compactMap { $0.topCandidates(1).first?.string } ?? []
-            completion(.success(recognizedStrings))
+            guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                DispatchQueue.main.async {
+                    completion(.failure(NSError(domain: "ImageCropper", code: 2, userInfo: [NSLocalizedDescriptionKey: "No text observations found."])))
+                }
+                return
+            }
+            
+            let recognizedStrings = observations.compactMap { $0.topCandidates(1).first?.string }
+            
+            // 메인 스레드에서 completion 호출
+            DispatchQueue.main.async {
+                completion(.success(recognizedStrings))
+            }
         }
         
         // 요청 설정 (고해상도 정확도 사용)
@@ -50,9 +62,12 @@ public class ImageCropper {
             do {
                 try requestHandler.perform([request])
             } catch {
-                completion(.failure(error))
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
             }
         }
     }
+
 }
 

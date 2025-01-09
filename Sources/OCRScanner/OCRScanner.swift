@@ -14,7 +14,8 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     private var cropView: UIView!
 
     public var onTextRecognized: (([String]) -> Void)?
-
+    public var onCancel: (() -> Void)?
+    
     private let captureButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("촬영", for: .normal)
@@ -22,6 +23,13 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         return button
     }()
 
+    private let cancelButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("취소", for: .normal)
+        button.addTarget(self, action: #selector(didTapCancelButton), for: .touchUpInside)
+        return button
+    }()
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
         setupCamera()
@@ -108,9 +116,14 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     }
     
     private func setupUI() {
+        
         // 촬영 버튼 추가
-        captureButton.frame = CGRect(x: (view.frame.width - 200) / 2, y: view.frame.height - 100, width: 200, height: 50)
+        captureButton.frame = CGRect(x: view.frame.width / 2 + 100, y: view.frame.height - 100, width: 200, height: 50)
         self.view.addSubview(captureButton)
+        
+        // 취소 버튼 추가
+        cancelButton.frame = CGRect(x: view.frame.width / 2 - 100, y: view.frame.height - 100, width: 100, height: 50) // 왼쪽에 배치
+        self.view.addSubview(cancelButton)
 
         // 크롭 영역 설정: 가로는 화면 크기의 절반, 세로는 화면 크기의 80%
         let cropWidth = view.frame.width / 2
@@ -140,6 +153,18 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 
+    @objc private func didTapCancelButton() {
+            // 취소 버튼 눌렀을 때의 동작
+            print("촬영이 취소되었습니다.")
+            
+            // 클로저 호출 (취소 시)
+            onCancel?()
+
+            // 예시: 카메라 세션을 멈추고 이전 화면으로 돌아가기
+            captureSession.stopRunning()
+            self.dismiss(animated: true, completion: nil)
+        }
+    
     public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else {
@@ -222,7 +247,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
 
         // 최소/최대 크기 제한 설정
         let minSize: CGFloat = 100
-        let maxSize: CGFloat = 100
+        let maxSize: CGFloat = view.frame.size.width * 0.9
 
         // 크기 조정: 좌우 및 상하 모두 변경
         if newWidth > minSize && newWidth < maxSize {

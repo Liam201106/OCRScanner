@@ -10,7 +10,6 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
     private var photoOutput: AVCapturePhotoOutput!
     private var previewLayer: AVCaptureVideoPreviewLayer!
 
-    private var originalImage: UIImage?
     private var cropView: UIView!
 
     public var onTextRecognized: (([String]) -> Void)?
@@ -22,46 +21,44 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         return button
     }()
 
-    private let cropButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("크롭 및 OCR", for: .normal)
-        button.addTarget(self, action: #selector(didTapCropButton), for: .touchUpInside)
-        return button
-    }()
-
     public override func viewDidLoad() {
         super.viewDidLoad()
         setupCamera()
         setupUI()
     }
 
-    public override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        updateCameraOrientation()
+    public override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait // 세로 고정
     }
-
-    private func updateCameraOrientation() {
-        guard let connection = previewLayer.connection else { return }
-
-        // 디바이스 방향에 따라 AVCaptureConnection 방향 설정
-        if connection.isVideoOrientationSupported {
-            switch UIDevice.current.orientation {
-            case .portrait:
-                connection.videoOrientation = .portrait
-            case .landscapeRight:
-                connection.videoOrientation = .landscapeLeft // 카메라 뷰 기준 반대 방향
-            case .landscapeLeft:
-                connection.videoOrientation = .landscapeRight
-            case .portraitUpsideDown:
-                connection.videoOrientation = .portraitUpsideDown
-            default:
-                connection.videoOrientation = .portrait
-            }
-        }
-
-        // 레이어 프레임 업데이트
-        previewLayer.frame = view.bounds
-    }
+    
+//    public override func viewWillLayoutSubviews() {
+//        super.viewWillLayoutSubviews()
+//        updateCameraOrientation()
+//    }
+//
+//    private func updateCameraOrientation() {
+//        guard let connection = previewLayer.connection else { return }
+//
+//        // 디바이스 방향에 따라 AVCaptureConnection 방향 설정
+//        if connection.isVideoOrientationSupported {
+//            switch UIDevice.current.orientation {
+//            case .portrait:
+//                connection.videoOrientation = .portrait
+//            case .landscapeRight:
+//                connection.videoOrientation = .landscapeLeft // 카메라 뷰 기준 반대 방향
+//            case .landscapeLeft:
+//                connection.videoOrientation = .landscapeRight
+//            case .portraitUpsideDown:
+//                connection.videoOrientation = .portraitUpsideDown
+//            default:
+//                connection.videoOrientation = .portrait
+//            }
+//        }
+//
+//        // 레이어 프레임 업데이트
+//        previewLayer.frame = view.bounds
+//    }
+    
     
     private func setupCamera() {
         // 1. Capture Session 설정
@@ -101,10 +98,6 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         captureButton.frame = CGRect(x: (view.frame.width - 200) / 2, y: view.frame.height - 100, width: 200, height: 50)
         self.view.addSubview(captureButton)
 
-        // 크롭 버튼 추가
-        cropButton.frame = CGRect(x: (view.frame.width - 200) / 2, y: view.frame.height - 150, width: 200, height: 50)
-        self.view.addSubview(cropButton)
-
         // 크롭 영역 설정: 가로는 화면 크기의 절반, 세로는 화면 크기의 80%
         let cropWidth = view.frame.width / 2
         let cropHeight = view.frame.height * 0.8
@@ -130,9 +123,14 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 
-    @objc private func didTapCropButton() {
-        guard let image = originalImage else { return }
-
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        guard let data = photo.fileDataRepresentation(),
+              let image = UIImage(data: data) else {
+            print("이미지 캡처 실패")
+            return
+        }
+        print("이미지가 성공적으로 캡처되었습니다.")
+        
         // 크롭된 영역을 기준으로 이미지 자르기
         let cropRect = cropView.frame
         if let croppedImage = ImageCropper.cropImage(image: image, cropRect: cropRect) {
@@ -150,17 +148,6 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
                 }
             }
         }
-    }
-
-    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        guard let data = photo.fileDataRepresentation(),
-              let image = UIImage(data: data) else {
-            print("이미지 캡처 실패")
-            return
-        }
-
-        originalImage = image
-        print("이미지가 성공적으로 캡처되었습니다.")
     }
 
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {

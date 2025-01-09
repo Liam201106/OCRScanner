@@ -4,7 +4,7 @@
 import UIKit
 import AVFoundation
 
-public class CameraCaptureViewController: UIViewController, @preconcurrency AVCapturePhotoCaptureDelegate {
+public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCaptureDelegate {
 
     private var captureSession: AVCaptureSession!
     private var photoOutput: AVCapturePhotoOutput!
@@ -18,14 +18,14 @@ public class CameraCaptureViewController: UIViewController, @preconcurrency AVCa
     private let captureButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("촬영", for: .normal)
-        button.addTarget(CameraCaptureViewController.self, action: #selector(didTapCaptureButton), for: .touchUpInside)
+        button.addTarget(self, action: #selector(didTapCaptureButton), for: .touchUpInside)
         return button
     }()
 
     private let cropButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("크롭 및 OCR", for: .normal)
-        button.addTarget(CameraCaptureViewController.self, action: #selector(didTapCropButton), for: .touchUpInside)
+        button.addTarget(self, action: #selector(didTapCropButton), for: .touchUpInside)
         return button
     }()
 

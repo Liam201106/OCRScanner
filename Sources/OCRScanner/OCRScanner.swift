@@ -130,6 +130,7 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
             return
         }
         print("이미지가 성공적으로 캡처되었습니다.")
+        print("Resized Image size: \(image.size)")
         
         // 크롭된 영역을 기준으로 이미지 자르기
         let cropRect = cropView.frame

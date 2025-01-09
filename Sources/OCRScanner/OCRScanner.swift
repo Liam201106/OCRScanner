@@ -9,7 +9,8 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
     private var captureSession: AVCaptureSession!
     private var photoOutput: AVCapturePhotoOutput!
     private var previewLayer: AVCaptureVideoPreviewLayer!
-
+    var captureDevice: AVCaptureDevice?
+    
     private var cropView: UIView!
 
     public var onTextRecognized: (([String]) -> Void)?
@@ -30,35 +31,6 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
     public override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait // 세로 고정
     }
-    
-//    public override func viewWillLayoutSubviews() {
-//        super.viewWillLayoutSubviews()
-//        updateCameraOrientation()
-//    }
-//
-//    private func updateCameraOrientation() {
-//        guard let connection = previewLayer.connection else { return }
-//
-//        // 디바이스 방향에 따라 AVCaptureConnection 방향 설정
-//        if connection.isVideoOrientationSupported {
-//            switch UIDevice.current.orientation {
-//            case .portrait:
-//                connection.videoOrientation = .portrait
-//            case .landscapeRight:
-//                connection.videoOrientation = .landscapeLeft // 카메라 뷰 기준 반대 방향
-//            case .landscapeLeft:
-//                connection.videoOrientation = .landscapeRight
-//            case .portraitUpsideDown:
-//                connection.videoOrientation = .portraitUpsideDown
-//            default:
-//                connection.videoOrientation = .portrait
-//            }
-//        }
-//
-//        // 레이어 프레임 업데이트
-//        previewLayer.frame = view.bounds
-//    }
-    
     
     private func setupCamera() {
         // 1. Capture Session 설정
@@ -99,6 +71,42 @@ public class OCRScanner: UIViewController, @preconcurrency AVCapturePhotoCapture
         captureSession.startRunning()
     }
 
+    // 줌 설정 함수
+    func setZoomFactor(zoomFactor: CGFloat) {
+        guard let captureDevice = captureDevice else { return }
+
+        do {
+            try captureDevice.lockForConfiguration()
+
+            // 줌 비율 설정
+            captureDevice.videoZoomFactor = zoomFactor
+
+            captureDevice.unlockForConfiguration()
+        } catch {
+            print("줌 설정 실패: \(error)")
+        }
+    }
+
+    // 오토포커스 설정 함수
+    func setAutoFocus() {
+        guard let captureDevice = captureDevice else { return }
+
+        do {
+            try captureDevice.lockForConfiguration()
+
+            // 오토포커스 활성화
+            if captureDevice.isFocusModeSupported(.autoFocus) {
+                captureDevice.focusMode = .autoFocus
+            }
+
+            // 포커스 지점 설정 (화면 중앙)
+            captureDevice.focusPointOfInterest = CGPoint(x: 0.5, y: 0.5)
+            captureDevice.unlockForConfiguration()
+        } catch {
+            print("오토포커스 설정 실패: \(error)")
+        }
+    }
+    
     private func setupUI() {
         // 촬영 버튼 추가
         captureButton.frame = CGRect(x: (view.frame.width - 200) / 2, y: view.frame.height - 100, width: 200, height: 50)

@@ -126,9 +126,9 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         cancelButton.frame = CGRect(x: view.frame.width / 2 - 150, y: view.frame.height - 100, width: 100, height: 50) // 왼쪽에 배치
         self.view.addSubview(cancelButton)
 
-        // 크롭 영역 설정: 가로는 화면 크기의 절반, 세로는 화면 크기의 80%
+        // 크롭 영역 설정: 가로는 화면 크기의 절반, 세로는 화면 크기의 70%
         let cropWidth = view.frame.width / 2
-        let cropHeight = view.frame.height * 0.8
+        let cropHeight = view.frame.height * 0.7
         let cropX = (view.frame.width - cropWidth) / 2
         let cropY = (view.frame.height - cropHeight) / 2
 

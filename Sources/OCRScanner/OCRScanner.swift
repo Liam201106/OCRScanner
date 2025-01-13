@@ -13,9 +13,8 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
 
     private var cropView: UIView!
     private var recognizedTextLabel: UILabel!
-    private var recognizedText: [String] = [] // OCR 결과 저장
     
-    public var onTextRecognized: (([String]) -> Void)?
+    public var onTextRecognized: ((String) -> Void)?
     public var onCancel: (() -> Void)?
     
     private let captureButton: UIButton = {
@@ -212,7 +211,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     }
 
     @objc private func didTapConfirmButton() {
-        onTextRecognized?(recognizedText)
+        onTextRecognized?(recognizedTextLabel.text ?? "")
         self.dismiss(animated: true, completion: nil)
     }
     

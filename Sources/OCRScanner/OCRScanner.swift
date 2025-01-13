@@ -12,17 +12,29 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     var captureDevice: AVCaptureDevice?
 
     private var cropView: UIView!
-
+    private var recognizedTextLabel: UILabel!
+    private var recognizedText: [String] = [] // OCR 결과 저장
+    
     public var onTextRecognized: (([String]) -> Void)?
     public var onCancel: (() -> Void)?
     
     private let captureButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("촬영", for: .normal)
+        let cameraImage = UIImage(systemName: "camera.circle") // 시스템 이미지
+        button.setImage(cameraImage, for: .normal)
+        button.tintColor = .blue
         button.addTarget(self, action: #selector(didTapCaptureButton), for: .touchUpInside)
         return button
     }()
-
+    
+    private let confirmButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("확인", for: .normal)
+        button.tintColor = .green
+        button.addTarget(self, action: #selector(didTapConfirmButton), for: .touchUpInside)
+        return button
+    }()
+    
     private let cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("취소", for: .normal)
@@ -118,14 +130,32 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     
     private func setupUI() {
         
-        // 촬영 버튼 추가
-        captureButton.frame = CGRect(x: (view.frame.width / 2) + 50, y: view.frame.height - 100, width: 100, height: 50)
+        // 촬영 버튼 중앙 배치
+        let buttonSize: CGFloat = 70
+        captureButton.frame = CGRect(x: (view.frame.width - buttonSize) / 2, y: view.frame.height - 120, width: buttonSize, height: buttonSize)
         self.view.addSubview(captureButton)
         
-        // 취소 버튼 추가
-        cancelButton.frame = CGRect(x: view.frame.width / 2 - 150, y: view.frame.height - 100, width: 100, height: 50) // 왼쪽에 배치
+        // 확인 버튼 추가 (촬영 버튼 오른쪽)
+        confirmButton.frame = CGRect(x: captureButton.frame.maxX + 20, y: captureButton.frame.minY, width: 80, height: 50)
+        confirmButton.isHidden = true // 처음에는 숨김
+        self.view.addSubview(confirmButton)
+        
+        // 취소 버튼 추가 (촬영 버튼 왼쪽)
+        cancelButton.frame = CGRect(x: captureButton.frame.minX - 100, y: captureButton.frame.minY, width: 80, height: 50)
         self.view.addSubview(cancelButton)
 
+        // OCR 결과 표시 Label 추가 (촬영 버튼 위)
+        recognizedTextLabel = UILabel()
+        recognizedTextLabel.frame = CGRect(x: 20, y: captureButton.frame.minY - 60, width: view.frame.width - 40, height: 50)
+        recognizedTextLabel.textAlignment = .center
+        recognizedTextLabel.textColor = .white
+        recognizedTextLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        recognizedTextLabel.layer.cornerRadius = 8
+        recognizedTextLabel.clipsToBounds = true
+        recognizedTextLabel.numberOfLines = 2
+        recognizedTextLabel.isHidden = true // 초기에는 숨김
+        self.view.addSubview(recognizedTextLabel)
+        
         // 크롭 영역 설정: 가로는 화면 크기의 절반, 세로는 화면 크기의 70%
         let cropWidth = view.frame.width / 2
         let cropHeight = view.frame.height * 0.7
@@ -154,6 +184,11 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 
+    @objc private func didTapConfirmButton() {
+        onTextRecognized?(recognizedText)
+        self.dismiss(animated: true, completion: nil)
+    }
+    
     @objc private func didTapCancelButton() {
             // 취소 버튼 눌렀을 때의 동작
             print("촬영이 취소되었습니다.")
@@ -205,9 +240,11 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let recognizedText):
-                        // 텍스트 결과 콜백
-                        self?.onTextRecognized?(recognizedText)
-                        self?.dismiss(animated: true, completion: nil)
+                        // OCR 수행
+                        self!.recognizedTextLabel.text = recognizedText.joined(separator: "\n")
+                        self!.recognizedTextLabel.isHidden = false
+                        self!.confirmButton.isHidden = false
+
                     case .failure(let error):
                         print("OCR Error: \(error.localizedDescription)")
                     }

@@ -268,7 +268,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
                     switch result {
                     case .success(let recognizedText):
                         // OCR 수행
-                        self!.recognizedTextLabel.text = recognizedText.joined(separator: "\n")
+                        self!.recognizedTextLabel.text = recognizedText.joined(separator: " ")
                         self!.recognizedTextLabel.isHidden = false
                         self!.confirmButton.isHidden = false
 

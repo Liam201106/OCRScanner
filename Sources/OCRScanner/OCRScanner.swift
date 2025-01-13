@@ -22,7 +22,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         let button = UIButton(type: .system)
         let cameraImage = UIImage(systemName: "camera.circle") // 시스템 이미지
         button.setImage(cameraImage, for: .normal)
-        button.tintColor = .blue
+        button.tintColor = .white
         button.addTarget(self, action: #selector(didTapCaptureButton), for: .touchUpInside)
         return button
     }()
@@ -131,7 +131,7 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     private func setupUI() {
         
         // 촬영 버튼 중앙 배치
-        let buttonSize: CGFloat = 70
+        let buttonSize: CGFloat = 200
         captureButton.frame = CGRect(x: (view.frame.width - buttonSize) / 2, y: view.frame.height - 120, width: buttonSize, height: buttonSize)
         self.view.addSubview(captureButton)
         

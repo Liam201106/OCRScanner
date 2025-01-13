@@ -131,17 +131,44 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
     private func setupUI() {
         
         // 촬영 버튼 중앙 배치
-        let buttonSize: CGFloat = 200
-        captureButton.frame = CGRect(x: (view.frame.width - buttonSize) / 2, y: view.frame.height - 120, width: buttonSize, height: buttonSize)
+        let buttonSize: CGFloat = 200 // 더 큰 사이즈
+        captureButton.frame = CGRect(x: (view.frame.width - buttonSize) / 2,
+                                     y: view.frame.height - 180,
+                                     width: buttonSize,
+                                     height: buttonSize)
+        captureButton.backgroundColor = UIColor.systemBlue // 배경 색상
+        captureButton.layer.cornerRadius = buttonSize / 2  // 동그랗게
+        captureButton.clipsToBounds = true
+
+        // 시스템 이미지 설정 (이미지가 버튼 크기를 채우도록 설정)
+        let largeConfig = UIImage.SymbolConfiguration(pointSize: buttonSize * 0.5, weight: .bold)
+        let cameraImage = UIImage(systemName: "camera.circle.fill", withConfiguration: largeConfig)
+        captureButton.setImage(cameraImage, for: .normal)
+        captureButton.tintColor = .white // 이미지 색상
+        captureButton.imageView?.contentMode = .scaleAspectFit // 이미지가 버튼 크기 안에서 비율 유지하며 꽉 차도록
         self.view.addSubview(captureButton)
-        
+
         // 확인 버튼 추가 (촬영 버튼 오른쪽)
-        confirmButton.frame = CGRect(x: captureButton.frame.maxX + 20, y: captureButton.frame.minY, width: 80, height: 50)
+        confirmButton.frame = CGRect(x: captureButton.frame.maxX + 20,
+                                     y: captureButton.frame.midY - 25,
+                                     width: 80,
+                                     height: 50)
         confirmButton.isHidden = true // 처음에는 숨김
+        confirmButton.backgroundColor = UIColor.systemGreen // 색상 예시
+        confirmButton.setTitle("확인", for: .normal)
+        confirmButton.setTitleColor(.white, for: .normal)
+        confirmButton.layer.cornerRadius = 10
         self.view.addSubview(confirmButton)
-        
+
         // 취소 버튼 추가 (촬영 버튼 왼쪽)
-        cancelButton.frame = CGRect(x: captureButton.frame.minX - 100, y: captureButton.frame.minY, width: 80, height: 50)
+        cancelButton.frame = CGRect(x: captureButton.frame.minX - 100,
+                                    y: captureButton.frame.midY - 25,
+                                    width: 80,
+                                    height: 50)
+        cancelButton.backgroundColor = UIColor.systemRed // 색상 예시
+        cancelButton.setTitle("취소", for: .normal)
+        cancelButton.setTitleColor(.white, for: .normal)
+        cancelButton.layer.cornerRadius = 10
         self.view.addSubview(cancelButton)
 
         // OCR 결과 표시 Label 추가 (촬영 버튼 위)

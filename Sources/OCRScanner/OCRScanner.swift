@@ -133,10 +133,10 @@ public class OCRScanner: UIViewController, AVCapturePhotoCaptureDelegate {
         // 촬영 버튼 중앙 배치
         let buttonSize: CGFloat = 100 // 더 큰 사이즈
         captureButton.frame = CGRect(x: (view.frame.width - buttonSize) / 2,
-                                     y: view.frame.height - 140,
+                                     y: view.frame.height - 180,
                                      width: buttonSize,
                                      height: buttonSize)
-        captureButton.backgroundColor = UIColor.systemBlue // 배경 색상
+        captureButton.backgroundColor = UIColor.white // 배경 색상
         captureButton.layer.cornerRadius = buttonSize / 2  // 동그랗게
         captureButton.clipsToBounds = true
 
